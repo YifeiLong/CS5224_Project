@@ -21,11 +21,15 @@ from .services.scenarios import make_scenarios
 from .services.tariff import get_tariff_series
 from .services.weather_model import WeatherForecaster
 
+from .services.advisory_api import router as advisory_router
+
 app = FastAPI(
     title="SolarYield AI",
     version="0.1.0",
     description="Rooftop PV yield forecasting and ROI analysis for Singapore.",
 )
+
+app.include_router(advisory_router)
 
 # Single shared forecaster instance (stateless in the dummy implementation)
 _forecaster = WeatherForecaster()
