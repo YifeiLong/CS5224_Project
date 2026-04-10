@@ -65,12 +65,12 @@ ONLY FOR REFERENCE
 
 **Request/Response shapes** are documented in `api.js` → Section 1.
 
-### 2. Solar Analysis — `/analysis`
-ML Model Integration: The `future12MonthsYield` field in `/analysis/predict` should be powered by a machine learning model.
+### 2. Solar Yield Analysis
+ML Model Integration: The future prediction for pro and past summary for non-pro users should be powered by a machine learning model.
 
-### 3. AI Chat — `/chat`
+### 3. AI Chat
 
-### 4. Payments   — `/Pro Subscription`
+### 4. Payments 
 
 
 ---
