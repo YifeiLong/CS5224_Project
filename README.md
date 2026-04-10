@@ -98,10 +98,7 @@ window.location.href = url; // Redirect to Stripe Checkout
 ```
 
 ### `Dashboard.jsx`
-Add a "Download Report" button (Pro only) that calls:
-```js
-await generatePdfReport(postalCode, roofSize, solarData);
-```
+Based on model outputs
 
 ---
 
