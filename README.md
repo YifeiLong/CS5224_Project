@@ -16,6 +16,7 @@ STILL UNDER REVISION!!!
 
 ### Install & Run (must)
 ```bash
+Download all files and put them into a single folder then:
 npm install 
 npm run dev
 ```
