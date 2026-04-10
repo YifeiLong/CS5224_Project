@@ -4,7 +4,7 @@ STILL UNDER REVISION!!!
 - NEED API for connecting with backend
 - fetch results of user data and model outputs and post
 - Consistency with backend models
-- You can test login first with loginModal.jsx
+- You can test login first with loginModal.jsx, with our mock user -- email:cs5224group11@gmail.com, password: 12345678
 ---
 
 
