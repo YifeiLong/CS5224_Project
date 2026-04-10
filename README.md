@@ -112,5 +112,4 @@ The app runs fully without a backend. All mocks are in `api.js`:
 | Solar analysis | Returns hardcoded data after 1.5s delay |
 | AI chat | Returns a placeholder string after 1.5s delay |
 | Payment | Simulates success after 2s delay |
-| PDF export | Logs a warning to the console |
 
