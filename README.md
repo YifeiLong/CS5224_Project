@@ -4,7 +4,7 @@ STILL UNDER REVISION!!!
 NEED API for connecting with backend
 fetch results of user data and model outputs and post
 Consistency with backend models
-YOu can test login first
+You can test login first with loginModal.jsx
 ---
 
 
