@@ -16,11 +16,14 @@ backend/
 │   │   └── station_meta.csv  # Weather stations mapping for Haversine distances
 │   ├── models/           # Pre-trained Prophet JSON models (Rain, Sun, Tariff)
 │   └── services/
+        ├── advisory_api.py   # LLM advisory endpoint
+        ├── llm_service.py    # Local LLM loading & inference
 │       ├── geocode.py    # OneMap postal-code → lat/lon
 │       ├── weather_model.py  # Prophet ML logic, station matching & inference
 │       ├── scenarios.py  # Pessimistic / neutral / optimistic scaling
 │       ├── pv.py         # Sun-hours → kWh conversion
 │       └── roi.py        # Savings, payback period, 10-year ROI
+├── download_model.py   # Script to download local LLM model
 ├── pyproject.toml
 └── .python-version       
 ```
