@@ -24,17 +24,21 @@ const HeroInput = () => {
     setPostalError('');
     setLoading(true);
 
-    const response = await fetchPrediction(postalCode, roofSize);
-    setSolarData(response.data);
+    try {
+      const response = await fetchPrediction(postalCode, roofSize);
+      setSolarData(response.data);
 
-    setLoading(false);
-
-    setTimeout(() => {
-      const dashboard = document.getElementById('dashboard-section');
-      if (dashboard) {
-        dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 150);
+      setTimeout(() => {
+        const dashboard = document.getElementById('dashboard-section');
+        if (dashboard) {
+          dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    } catch (err) {
+      setPostalError(err.message || 'Failed to analyze location. Please verify your postal code.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
