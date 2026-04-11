@@ -1,6 +1,6 @@
 # SolarYield AI — Backend
 
-FastAPI backend providing rooftop PV yield forecasting and ROI analysis for Singapore installations.
+FastAPI backend providing rooftop PV yield forecasting and ROI analysis for Singapore installations using Facebook Prophet ML models.
 
 ---
 
@@ -11,16 +11,18 @@ backend/
 ├── src/
 │   ├── main.py           # FastAPI app + route handlers
 │   ├── schemas.py        # Pydantic request model & validation
-│   ├── config.py         # Shared constants (tariff, degradation, etc.)
+│   ├── config.py         # Shared constants (default parameters, etc.)
+│   ├── data/
+│   │   └── station_meta.csv  # Weather stations mapping for Haversine distances
+│   ├── models/           # Pre-trained Prophet JSON models (Rain, Sun, Tariff)
 │   └── services/
 │       ├── geocode.py    # OneMap postal-code → lat/lon
-│       ├── weather_model.py  # WeatherForecaster (DUMMY STUB — see below)
+│       ├── weather_model.py  # Prophet ML logic, station matching & inference
 │       ├── scenarios.py  # Pessimistic / neutral / optimistic scaling
 │       ├── pv.py         # Sun-hours → kWh conversion
-│       ├── tariff.py     # Electricity tariff series
 │       └── roi.py        # Savings, payback period, 10-year ROI
 ├── pyproject.toml
-└── .python-version       # 3.11
+└── .python-version       
 ```
 
 ---
@@ -89,9 +91,10 @@ curl -s -X POST http://localhost:8000/forecast \
     "roof_area_m2": 50,
     "system_size_kwp": 6,
     "panel_efficiency": 0.20,
-    "capex_sgd": 12000,
+    "user_type": "residential",
+    "capex_sgd": null,
     "monthly_load_kwh": 450,
-    "tariff_sgd_per_kwh": 0.30
+    "tariff_sgd_per_kwh": null
   }' | python3 -m json.tool
 ```
 
@@ -99,26 +102,42 @@ curl -s -X POST http://localhost:8000/forecast \
 
 ```json
 {
-  "location": { "lat": 1.2799963, "lon": 103.8473476, "postal_code": "098585" },
-  "inputs_used": {
-    "roof_area_m2": 50, "system_size_kwp": 6.0,
-    "panel_efficiency": 0.2, "capex_sgd": 12000.0,
-    "monthly_load_kwh": 450, "tariff_sgd_per_kwh": 0.3
+  "location": {
+    "lat": 1.2799963,
+    "lon": 103.8473476,
+    "postal_code": "098585",
+    "nearest_station": "Sentosa Island",
+    "station_distance_km": 1.24
   },
-  "weather": {
+  "inputs_used": {
+    "roof_area_m2": 50, 
+    "user_type": "residential",
+    "system_size_kwp": 6.0,
+    "panel_efficiency": 0.2, 
+    "capex_sgd": 12000.0,
+    "monthly_load_kwh": 450, 
+    "tariff_sgd_per_kwh": 0.3
+  },
+  "historical_averages": {
+    "past_12m_avg_daily_sunshine_hrs": 6.5,
+    "past_12m_avg_rainy_days": 14.5,
+    "past_12m_avg_tariff_cents": 29.8
+  },
+  "weather_scenarios": {
     "pessimistic": [102.0, 109.34, ...],
     "neutral":     [120.0, 128.63, ...],
     "optimistic":  [138.0, 147.92, ...]
   },
+  "rainy_days": [14.0, 12.0, 16.0, ...],
   "pv_kwh": {
     "pessimistic": [489.6, 524.82, ...],
     "neutral":     [576.0, 617.44, ...],
     "optimistic":  [662.4, 710.0, ...]
   },
-  "tariff": [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3],
+  "tariff_series": [0.301, 0.302, ...],
   "roi": {
     "capex_sgd": 12000.0,
-    "payback_years": { "pessimistic": null, "neutral": null, "optimistic": null },
+    "payback_years": { "pessimistic": null, "neutral": 8.5, "optimistic": 7.2 },
     "roi_10y": { "pessimistic": 0.4321, "neutral": 0.7109, "optimistic": 0.9897 }
   },
   "cashflow_cumulative_sgd": {
@@ -131,26 +150,21 @@ curl -s -X POST http://localhost:8000/forecast \
 
 ---
 
-## Dummy weather model — how to plug in the real model
+## Prophet ML Integration
 
-The file `src/services/weather_model.py` contains a `WeatherForecaster` class with:
+The file `src/services/weather_model.py` contains a `ProphetForecaster` class which directly integrates the actual solar AI models (Facebook Prophet).
 
-| Method | Current behaviour | Replace with |
-|--------|------------------|--------------|
-| `load_model(path)` | no-op | deserialise your Prophet / LSTM artifact |
-| `forecast_monthly(lat, lon)` | deterministic sinusoidal pattern (120 ± 10 sun-hours) | real inference returning `list[float]` of length 12 |
+| Step | Action Performed by Backend |
+|--------|------------------|
+| **1. Station Matching** | Computes the Haversine distance between the user’s coordinates and all available weather stations in `station_meta.csv` to pick the nearest one. |
+| **2. Rainy Days Model** | Deserializes `model_rain_{station_id}.json` and predicts the number of rainy days for the next 12 months. |
+| **3. Sun-hours Model**  | Deserializes the global `model_sun.json` to predict the base daily sun hours for the next 12 months, scaling it up to monthly totals using Pandas. |
+| **4. Tariff Model**     | Depending on `"user_type": "residential"` or `"commercial"`, deserializes the corresponding `.json` market model to forecast electricity rates for the next 12 months. |
+| **5. Historical Extraction** | Extracts the last 12 months of actual history directly from the Prophet forecast objects to compute `historical_averages`. |
 
-**Steps to integrate a real model:**
-
-1. Train your model to output 12 monthly effective sun-hours given (lat, lon).
-2. Serialise it (e.g. `joblib.dump(model, "weather_model.pkl")`).
-3. Set `MODEL_PATH` in `config.py` or as an env var.
-4. In `weather_model.py`:
-   - In `load_model`: `self._model = joblib.load(path)` (or equivalent).
-   - In `forecast_monthly`: call `self._model.predict(lat, lon)` and return the result.
-5. Call `_forecaster.load_model(MODEL_PATH)` in `main.py` at startup.
-
-No other changes are required — the rest of the pipeline is model-agnostic.
+**How it was integrated:**
+- Models were trained via Prophet, exported using `prophet.serialize.model_to_json`, and stored in `src/models/`.
+- Predictions leverage `pandas` for date generation (`datetime.now()`) to provide dynamic, live predictions starting from the current month.
 
 ---
 

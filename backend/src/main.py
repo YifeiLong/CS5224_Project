@@ -13,15 +13,12 @@ load_dotenv()  # load .env file before config reads os.getenv()
 from fastapi import FastAPI, HTTPException
 
 from .config import DEFAULT_CAPEX_PER_KWP_SGD, DEFAULT_PERFORMANCE_RATIO
-from .schemas import ForecastRequest
+from .schemas import ForecastRequest, ForecastResponse
 from .services.geocode import geocode_postal
 from .services.pv import pv_kwh_monthly
 from .services.roi import compute_roi
 from .services.scenarios import make_scenarios
-from .services.tariff import get_tariff_series
-from .services.weather_model import WeatherForecaster
-
-from .services.advisory_api import router as advisory_router
+from .services.weather_model import ProphetForecaster
 
 app = FastAPI(
     title="SolarYield AI",
@@ -29,10 +26,8 @@ app = FastAPI(
     description="Rooftop PV yield forecasting and ROI analysis for Singapore.",
 )
 
-app.include_router(advisory_router)
-
-# Single shared forecaster instance (stateless in the dummy implementation)
-_forecaster = WeatherForecaster()
+# Single shared forecaster instance
+_forecaster = ProphetForecaster()
 
 
 @app.get("/health", summary="Liveness check")
@@ -41,12 +36,12 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-@app.post("/forecast", summary="Generate 12-month PV forecast and ROI")
+@app.post("/forecast", summary="Generate 12-month PV forecast and ROI", response_model=ForecastResponse)
 def forecast(req: ForecastRequest) -> dict:
     """
     Steps:
       A. Resolve location (lat/lon or geocode postal code)
-      B. Get dummy weather forecast (12 sun-hours)
+      B. Get weather forecast (12 sun-hours)
       C. Build pessimistic / neutral / optimistic weather scenarios
       D. Convert sun-hours → kWh via simple PV formula
       E. Build tariff series
@@ -74,8 +69,13 @@ def forecast(req: ForecastRequest) -> dict:
         else DEFAULT_CAPEX_PER_KWP_SGD * system_size_kwp
     )
 
-    # --- B. Weather forecast (dummy stub) ---
-    base_weather = _forecaster.forecast_monthly(lat, lon)
+    # --- B. Weather & Tariff forecast (Prophet ML model) ---
+    try:
+        forecast_data = _forecaster.forecast_scenario(lat, lon, req.user_type)
+        base_weather = forecast_data["sun_hours_monthly"] 
+        ml_tariff = forecast_data["tariff_sgd_monthly"]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Model error: {str(exc)}") from exc
 
     # --- C. Scenarios (±15 %) ---
     weather_scenarios = make_scenarios(base_weather)
@@ -87,7 +87,10 @@ def forecast(req: ForecastRequest) -> dict:
     }
 
     # --- E. Tariff series ---
-    tariff = get_tariff_series(req.tariff_sgd_per_kwh)
+    if req.tariff_sgd_per_kwh is not None:
+        tariff = [req.tariff_sgd_per_kwh] * 12
+    else:
+        tariff = ml_tariff
 
     # --- F. ROI per scenario ---
     cashflow: dict[str, list[float]] = {}
@@ -106,18 +109,23 @@ def forecast(req: ForecastRequest) -> dict:
             "lat": lat,
             "lon": lon,
             "postal_code": req.postal_code,
+            "nearest_station": forecast_data["station"]["station_name"],
+            "station_distance_km": forecast_data["station"]["distance_km"]
         },
         "inputs_used": {
             "roof_area_m2": req.roof_area_m2,
+            "user_type": req.user_type,
             "system_size_kwp": round(system_size_kwp, 3),
             "panel_efficiency": req.panel_efficiency,
             "capex_sgd": round(capex_sgd, 2),
             "monthly_load_kwh": req.monthly_load_kwh,
             "tariff_sgd_per_kwh": tariff[0],
         },
-        "weather": weather_scenarios,
+        "historical_averages": forecast_data["historical"],
+        "weather_scenarios": weather_scenarios,
+        "rainy_days": forecast_data["rainy_days_monthly"],
         "pv_kwh": pv_scenarios,
-        "tariff": tariff,
+        "tariff_series": tariff,
         "roi": {
             "capex_sgd": round(capex_sgd, 2),
             "payback_years": payback_years,
