@@ -180,7 +180,7 @@ It focuses on interpreting the existing output and presenting it in a concise an
 
 ---
 
-## Overview
+### Overview
 
 The advisory workflow is designed to work together with the `/forecast` endpoint:
 
@@ -197,9 +197,9 @@ Typical usage:
 
 ---
 
-## Components
+### Components
 
-### Model preparation (`download_model.py`)
+#### Model preparation (`download_model.py`)
 
 This script downloads a small local language model and stores it under the project directory.
 
@@ -223,7 +223,7 @@ This step only needs to be run once before using the advisory endpoint.
 
 ---
 
-### Local LLM service (`llm_service.py`)
+#### Local LLM service (`llm_service.py`)
 
 This module implements the core advisory logic.
 
@@ -234,7 +234,7 @@ It is responsible for:
 - constructing a compact prompt  
 - generating a short advisory response  
 
-#### Forecast summarization
+##### Forecast summarization
 
 Instead of passing the full forecast JSON directly to the model, a smaller summary is constructed, including:
 
@@ -248,7 +248,7 @@ This improves stability and reduces prompt size for smaller models.
 
 ---
 
-#### Prompt design
+##### Prompt design
 
 The model input is structured as:
 
@@ -264,7 +264,7 @@ The design enforces:
 
 ---
 
-#### Run modes
+##### Run modes
 
 The advisory service supports two modes:
 
@@ -275,7 +275,7 @@ The mock mode is useful for testing and as a fallback when model files are not a
 
 ---
 
-#### Uncertainty handling
+##### Uncertainty handling
 
 A simple rule-based check is used to identify high uncertainty:
 
@@ -286,7 +286,7 @@ This is reflected in the generated explanation to provide a more realistic inter
 
 ---
 
-### Advisory API (`advisory_api.py`)
+#### Advisory API (`advisory_api.py`)
 
 This module provides the `/advisory` endpoint.
 
@@ -299,7 +299,7 @@ Responsibilities:
 
 ---
 
-## Example flow
+### Example flow
 
 ```
 User:
@@ -321,7 +321,7 @@ LLM generates explanation
 
 ---
 
-## Response format
+### Response format
 
 ```json
 {
@@ -335,11 +335,11 @@ LLM generates explanation
 
 ---
 
-## Notes
+### Notes
 
 - The advisory module is intended for interpretation and decision support  
 - All outputs are based on forecast assumptions and should not be treated as guarantees  
-- For deployment, the model should be downloaded once and reused locally  
+- For deployment, the model should be downloaded once and reused locally
 
 
 ---
