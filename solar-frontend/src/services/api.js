@@ -203,7 +203,7 @@ export const fetchCurrentUser = async () => {
  * The advisory validator WILL reject payloads missing location, inputs_used,
  * pv_kwh, or roi — so these four top-level keys are mandatory.
  */
-export const fetchPrediction = async (postalCode, roofSize) => {
+export const fetchPrediction = async (postalCode, roofSize, userType = "residential") => {
   const res = await fetch(`${BASE_URL}/forecast`, {
     method: 'POST',
     headers: {
@@ -212,7 +212,7 @@ export const fetchPrediction = async (postalCode, roofSize) => {
     body: JSON.stringify({ 
       postal_code: postalCode, 
       roof_area_m2: Number(roofSize) * 0.092903, // converting sqft to sqm
-      user_type: "residential",
+      user_type: userType,
       system_size_kwp: null,
       panel_efficiency: 0.20,
       capex_sgd: null,
