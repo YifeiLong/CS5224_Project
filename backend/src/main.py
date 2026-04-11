@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()  # load .env file before config reads os.getenv()
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from .config import DEFAULT_CAPEX_PER_KWP_SGD, DEFAULT_PERFORMANCE_RATIO
 from .schemas import ForecastRequest, ForecastResponse
@@ -24,6 +25,15 @@ app = FastAPI(
     title="SolarYield AI",
     version="0.1.0",
     description="Rooftop PV yield forecasting and ROI analysis for Singapore.",
+)
+
+# Add CORS middleware to allow the frontend to communicate with the backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify the exact frontend URL e.g. ["http://localhost:5173"]
+    allow_credentials=True,
+    allow_methods=["*"],  # This allows the OPTIONS method preflight request
+    allow_headers=["*"],
 )
 
 # Single shared forecaster instance
