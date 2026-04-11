@@ -216,6 +216,26 @@ const Dashboard = ({ onOpenPayment, onOpenLogin }) => {
         dark={true}
       />
 
+      {/* ── Pro Stat cards ── */}
+      {isPro && (
+        <Grid container spacing={5} sx={{ mb: 10, justifyContent: 'center' }}>
+          <Grid item xs={12} md={5}>
+            <StatCard
+              label="Time to Breakeven"
+              value={solarData.proTier.roiYears ? `${solarData.proTier.roiYears} Years` : '30+ Years'}
+              color="#3b82f6"
+            />
+          </Grid>
+          <Grid item xs={12} md={5}>
+            <StatCard
+              label="Estimated Carbon Offset"
+              value={`${solarData.proTier.carbonOffset.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg CO₂/yr`}
+              color="#10b981"
+            />
+          </Grid>
+        </Grid>
+      )}
+
       {/* ── Pro Chart ── */}
       <Card sx={{ border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', borderRadius: 3, backgroundColor: '#fff', overflow: 'hidden' }}>
         <Box sx={{ px: 4, pt: 3, pb: 1 }}>
