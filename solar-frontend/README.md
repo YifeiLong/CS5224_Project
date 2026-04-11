@@ -1,7 +1,7 @@
 # SolarYield AI — Frontend
 
 STILL UNDER REVISION!!!
-- NEED API for connecting with backend
+- NEED API for connecting with backend, backend need to define the API to get user input from front-end, and post results to front-end after model evaluation
 - mainly fetch model forecast output from main.py at backend
 - You can test login functionality with loginModal.jsx and api.js, with our mock user -- email:cs5224group11@gmail.com, password: 12345678
 - user login data is stored inside users.json above
