@@ -72,8 +72,9 @@ pip install torch transformers accelerate huggingface_hub
 # download model
 python download_model.py
 ```
-The advisory endpoint (/advisory) requires the model to be downloaded first.
-Otherwise, you can use "run_mode": "mock" for testing.
+
+The advisory endpoint (`/advisory`) requires the model to be downloaded first.  
+Otherwise, you can use `"run_mode": "mock"` for testing.
 
 ---
 
