@@ -8,16 +8,11 @@ Raw dataset files are in `./data/` directory.
 Open `forecast_new.ipynb` and run all cells.
 
 **What happens during execution?**
-
-It aggregates high-frequency (5-minute) rainfall data into monthly rainy days.
-
-It extracts and saves weather station metadata to station_meta.csv.
-
-It trains and serializes a specific Prophet model for each valid weather station.
-
-It trains the global sunshine model and domestic/industrial tariff models.
-
-All models are saved as json files in the `./model/` folder.
+* It aggregates high-frequency (5-minute) rainfall data into monthly rainy days.
+* It extracts and saves weather station metadata to station_meta.csv.
+* It trains and serializes a specific Prophet model for each valid weather station.
+* It trains the global sunshine model and domestic/industrial tariff models.
+* All models are saved as json files in the `./model/` folder.
 
 ### Step 2: Running Predictions (evaluation.py)
 Once the models are trained, you can use `evaluation.py` to generate tailored forecasts for a specific region. This script is designed to be easily integrated into a backend API (like FastAPI) or a frontend dashboard (like Streamlit).
@@ -35,7 +30,7 @@ The function returns a pandas.DataFrame projecting 12 months into the future, co
 
 ## Calculation Parameters
 The financial savings calculation in evaluation.py uses the following physical constants and system efficiencies. You can adjust these in the script based on the specific solar panel hardware used:
-* Effective Roof Area (A_eff): 70% of total roof area.
-* Solar Constant (G): 1.0 kW/m².
-* Panel Efficiency (eta_panel): 80% (0.8).
-* System Efficiency (eta_system): 80% (0.8).
+* Effective Roof Area (`A_eff`): 70% of total roof area.
+* Solar Constant (`G`): 1.0 kW/m².
+* Panel Efficiency (`eta_panel`): 80% (0.8).
+* System Efficiency (`eta_system`): 80% (0.8).
