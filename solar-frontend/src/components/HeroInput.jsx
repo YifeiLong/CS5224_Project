@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Card, TextField, Button, CircularProgress, Slider } from '@mui/material';
+import { Box, Typography, Card, TextField, Button, CircularProgress, Slider, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { useUser } from '../context/UserContext';
 import { fetchPrediction } from '../services/api';
 import heroBg from '../assets/solar-panel-on-a-red-roof-reflecting-the-sun-web.jpg';
@@ -9,6 +9,7 @@ const HeroInput = () => {
   const [loading, setLoading] = useState(false);
   const [postalCode, setPostalCode] = useState('');
   const [roofSize, setRoofSize] = useState(50);
+  const [userType, setUserType] = useState('residential');
   const [postalError, setPostalError] = useState('');
 
   const handleAnalyze = async () => {
@@ -24,17 +25,21 @@ const HeroInput = () => {
     setPostalError('');
     setLoading(true);
 
-    const response = await fetchPrediction(postalCode, roofSize);
-    setSolarData(response.data);
+    try {
+      const response = await fetchPrediction(postalCode, roofSize, userType);
+      setSolarData(response.data);
 
-    setLoading(false);
-
-    setTimeout(() => {
-      const dashboard = document.getElementById('dashboard-section');
-      if (dashboard) {
-        dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 150);
+      setTimeout(() => {
+        const dashboard = document.getElementById('dashboard-section');
+        if (dashboard) {
+          dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    } catch (err) {
+      setPostalError(err.message || 'Failed to analyze location. Please verify your postal code.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -89,6 +94,43 @@ const HeroInput = () => {
             <Typography variant="body1" color="textSecondary" sx={{ textAlign: 'left', fontWeight: 600 }}>
               Get started by entering your property details now!
             </Typography>
+            
+            <Box sx={{ textAlign: 'left' }}>
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                Property Type
+              </Typography>
+              <ToggleButtonGroup
+                color="primary"
+                value={userType}
+                exclusive
+                onChange={(e, newType) => {
+                  if (newType !== null) setUserType(newType);
+                }}
+                fullWidth
+                sx={{
+                  '& .MuiToggleButton-root': {
+                    borderColor: '#e2e8f0',
+                    color: '#64748b',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    py: 1.5,
+                  },
+                  '& .MuiToggleButton-root.Mui-selected': {
+                    backgroundColor: '#fffbeb',
+                    color: '#b45309',
+                    borderColor: '#f59e0b',
+                    zIndex: 1,
+                    '&:hover': {
+                      backgroundColor: '#fef3c7',
+                    }
+                  }
+                }}
+              >
+                <ToggleButton value="residential">Residential</ToggleButton>
+                <ToggleButton value="commercial">Commercial</ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
             <TextField
               fullWidth
               label="Postal Code of your property (e.g. 560123)"

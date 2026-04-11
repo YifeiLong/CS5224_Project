@@ -55,20 +55,12 @@ def compute_roi(
         round(kwh * t, 4) for kwh, t in zip(savings_kwh, tariff_series)
     ]
 
-    # Cumulative cashflow: starts at -capex, grows by monthly savings
+    # Cumulative cashflow (first 12 months for the chart): starts at -capex
     cumulative: list[float] = []
     running = -capex_sgd
     for s in savings_sgd:
         running = round(running + s, 4)
         cumulative.append(running)
-
-    # Payback: first month (1-indexed) where cumulative >= 0
-    payback_month: Optional[int] = next(
-        (i + 1 for i, c in enumerate(cumulative) if c >= 0), None
-    )
-    payback_years: Optional[float] = (
-        round(payback_month / 12, 2) if payback_month is not None else None
-    )
 
     # 10-year ROI: extrapolate 12-month pattern × 10 years with degradation
     annual_savings = sum(savings_sgd)
@@ -78,6 +70,26 @@ def compute_roi(
     )
     roi_10y: Optional[float] = (
         round((total_10y - capex_sgd) / capex_sgd, 4) if capex_sgd > 0 else None
+    )
+
+    # Payback: project forward up to 30 years with degradation to find the break-even month
+    payback_month: Optional[int] = None
+    if annual_savings > 0:
+        running_payback = -capex_sgd
+        months_simulated = 0
+        for year in range(30):
+            degradation_factor = (1 - DEGRADATION_RATE_PER_YEAR) ** year
+            for month_savings in savings_sgd:
+                months_simulated += 1
+                running_payback += month_savings * degradation_factor
+                if running_payback >= 0 and payback_month is None:
+                    payback_month = months_simulated
+                    break
+            if payback_month is not None:
+                break
+
+    payback_years: Optional[float] = (
+        round(payback_month / 12, 1) if payback_month is not None else None
     )
 
     return {

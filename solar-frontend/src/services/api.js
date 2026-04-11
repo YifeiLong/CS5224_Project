@@ -203,69 +203,63 @@ export const fetchCurrentUser = async () => {
  * The advisory validator WILL reject payloads missing location, inputs_used,
  * pv_kwh, or roi — so these four top-level keys are mandatory.
  */
-export const fetchPrediction = async (postalCode, roofSize) => {
-  // ── MOCK (delete when backend is ready) ───────────────────────────
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        status: 'success',
-        location: { postalCode, district: postalCode.substring(0, 2) },
-        inputs_used: { roofSize, effectiveArea: roofSize * 0.7 },
-        pv_kwh: { monthly: [], annual: roofSize * 150 },
-        roi: {
-          estCost: Math.round(roofSize * 220),
-          paybackYears: 3.5,
-          annualSavings: roofSize * 120,
-          carbonOffset: roofSize * 0.8,
-        },
-        data: {
-          freeTier: {
-            historicalAvgSunHours: 4.8,
-            estCost: Math.round(roofSize * 220),
-            past12Months: [
-              { month: 'Jan', rainfall: 250, sunlight: 140 },
-              { month: 'Feb', rainfall: 160, sunlight: 160 },
-              { month: 'Mar', rainfall: 170, sunlight: 175 },
-              { month: 'Apr', rainfall: 165, sunlight: 180 },
-              { month: 'May', rainfall: 170, sunlight: 170 },
-              { month: 'Jun', rainfall: 150, sunlight: 190 },
-              { month: 'Jul', rainfall: 140, sunlight: 200 },
-              { month: 'Aug', rainfall: 145, sunlight: 195 },
-              { month: 'Sep', rainfall: 160, sunlight: 180 },
-              { month: 'Oct', rainfall: 190, sunlight: 160 },
-              { month: 'Nov', rainfall: 240, sunlight: 145 },
-              { month: 'Dec', rainfall: 280, sunlight: 130 },
-            ],
-          },
-          proTier: {
-            future12MonthsYield: [
-              { month: 'Next Jan', yield: roofSize * 11 },
-              { month: 'Next Feb', yield: roofSize * 12 },
-              { month: 'Next Mar', yield: roofSize * 14 },
-              { month: 'Next Apr', yield: roofSize * 15 },
-              { month: 'Next May', yield: roofSize * 14 },
-              { month: 'Next Jun', yield: roofSize * 13 },
-              { month: 'Next Jul', yield: roofSize * 13.5 },
-              { month: 'Next Aug', yield: roofSize * 14 },
-              { month: 'Next Sep', yield: roofSize * 12.5 },
-              { month: 'Next Oct', yield: roofSize * 11 },
-              { month: 'Next Nov', yield: roofSize * 9.5 },
-              { month: 'Next Dec', yield: roofSize * 9 },
-            ],
-            roiYears: 3.5,
-            carbonOffset: roofSize * 0.8,
-          },
-        },
-      });
-    }, 1500);
+export const fetchPrediction = async (postalCode, roofSize, userType = "residential") => {
+  const res = await fetch(`${BASE_URL}/forecast`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ 
+      postal_code: postalCode, 
+      roof_area_m2: Number(roofSize) * 0.092903, // converting sqft to sqm
+      user_type: userType,
+      system_size_kwp: null,
+      panel_efficiency: 0.20,
+      capex_sgd: null,
+      monthly_load_kwh: null,
+      tariff_sgd_per_kwh: null
+    }),
   });
-  // ── REAL (uncomment when backend is ready) ────────────────────────
-  // const res = await fetch(`${BASE_URL}/forecast`, {
-  //   method: 'POST',
-  //   headers: authHeaders(),
-  //   body: JSON.stringify({ postalCode, roofSize }),
-  // });
-  // return handleResponse(res);
+  
+  const backendData = await handleResponse(res);
+  
+  // Transform the new FastAPI backend response into the shape expected by Dashboard.jsx
+  return {
+    status: 'success',
+    location: backendData.location,
+    inputs_used: backendData.inputs_used,
+    pv_kwh: {
+      monthly: backendData.pv_kwh.neutral,
+      annual: backendData.pv_kwh.neutral.reduce((a, b) => a + b, 0)
+    },
+    roi: {
+      estCost: backendData.roi.capex_sgd,
+      paybackYears: backendData.roi.payback_years.neutral,
+      annualSavings: backendData.pv_kwh.neutral.reduce((a, b) => a + b, 0) * backendData.historical_averages.past_12m_avg_tariff_cents / 100,
+      carbonOffset: backendData.pv_kwh.neutral.reduce((a, b) => a + b, 0) * 0.408 // avg kg CO2 per kWh
+    },
+    data: {
+      freeTier: {
+        historicalAvgSunHours: backendData.historical_averages.past_12m_avg_daily_sunshine_hrs,
+        estCost: backendData.roi.capex_sgd,
+        past12Months: [
+          ...backendData.rainy_days.map((rain, i) => ({
+            month: `Month ${i+1}`,
+            rainfall: rain,
+            sunlight: backendData.historical_averages.past_12m_avg_daily_sunshine_hrs
+          }))
+        ]
+      },
+      proTier: {
+        future12MonthsYield: backendData.pv_kwh.neutral.map((yieldVal, i) => ({
+          month: `M${i+1}`,
+          yield: yieldVal
+        })),
+        roiYears: backendData.roi.payback_years.neutral,
+        carbonOffset: backendData.pv_kwh.neutral.reduce((a, b) => a + b, 0) * 0.408
+      }
+    }
+  };
 };
 
 

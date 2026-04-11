@@ -1,0 +1,80 @@
+# SolarYield AI — Local Development Guide
+
+Welcome to the SolarYield AI project! This guide will help our team members set up both the backend (FastAPI + Machine Learning models) and frontend (React + Vite) locally on their machines for testing and development.
+
+## 🛠 Prerequisites
+Before you start, make sure you have the following installed on your machine:
+- **Python 3.10+** (Preferably 3.12 as used in development)
+- **Node.js 18+** and **npm** 
+- Git
+
+---
+
+## 1️⃣ Running the Backend (FastAPI + ML Models)
+
+The backend handles the Prophet machine learning models, REST endpoints, and ROI calculations.
+
+### Step 1: Navigate to the backend directory
+Open a terminal and navigate to the backend folder:
+```bash
+cd backend
+```
+
+### Step 2: Install Python dependencies
+If you are using `poetry` (recommended since we have a `pyproject.toml`):
+```bash
+poetry install
+```
+*(Alternatively, you can create a standard python virtual environment and use `pip install .` or install from a requirements file if generated).*
+
+### Step 3: Start the Backend Server
+Run the FastAPI server using Uvicorn:
+```bash
+# If using poetry:
+poetry run uvicorn src.main:app --reload
+
+# Or if using standard python:
+uvicorn src.main:app --reload
+```
+The backend is now live at: **http://127.0.0.1:8000**
+*(You can view the interactive API documentation at http://127.0.0.1:8000/docs).*
+
+---
+
+## 2️⃣ Running the Frontend (React + Vite)
+
+The frontend is a Vite-powered React application with Material UI that connects directly to our local backend.
+
+### Step 1: Navigate to the frontend directory
+Open a **new** terminal window/tab (keep the backend running in the first one) and navigate to:
+```bash
+cd solar-frontend
+```
+
+### Step 2: Install Node dependencies
+Install all required packages from `package.json`:
+```bash
+npm install
+```
+
+### Step 3: Start the Frontend Development Server
+Run the Vite development server:
+```bash
+npm run dev
+```
+The frontend is now live at: **http://localhost:5173** (or whichever port Vite assigns, check your terminal output).
+
+---
+
+## 🧪 Testing the Integration
+
+1. Open your browser and go to `http://localhost:5173`.
+2. Ensure your backend terminal shows no red errors and is listening on port 8000.
+3. The frontend `api.js` is already configured to point to `http://localhost:8000/forecast` by default.
+4. **Test the Forecast:** Enter a valid Singapore postal code (e.g., `119077`), select "Residential" or "Commercial", and click Analyze. You should see the backend compute the Prophet charts and ROI!
+
+### 🔒 Mock User Login
+If you need to test Pro features or the payment workflows, use our pre-seeded group test account:
+- **Email:** `cs5224group11@gmail.com`
+- **Password:** `12345678`
+
