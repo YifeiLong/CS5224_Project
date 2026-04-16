@@ -31,7 +31,7 @@ const Navbar = ({ onOpenPayment, onOpenLogin, activeTab, onTabChange }) => {
   };
 
   return (
-    <AppBar position="static" elevation={1} style={{ backgroundColor: '#0f172a', backdropFilter: 'blur(8px)' }} sx={{ color: '#fff' }}>
+    <AppBar position="relative" elevation={1} style={{ backgroundColor: '#0f172a', backdropFilter: 'blur(8px)', zIndex: 1400 }} sx={{ color: '#fff' }}>
       <Toolbar disableGutters sx={{ px: 3 }}>
 
         {/* Logo */}
