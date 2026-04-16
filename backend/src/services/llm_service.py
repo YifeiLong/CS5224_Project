@@ -558,6 +558,9 @@ class LocalLLMService:
                     f"Run download_model.py first or set LOCAL_LLM_MODEL_PATH."
                 )
 
+            if self.device == "cpu":
+                torch.set_num_threads(4)
+
             self._tokenizer = AutoTokenizer.from_pretrained(
                 self.model_path,
                 trust_remote_code=True,
@@ -566,7 +569,7 @@ class LocalLLMService:
             self._model = AutoModelForCausalLM.from_pretrained(
                 self.model_path,
                 trust_remote_code=True,
-                torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
+                torch_dtype=torch.float16 if self.device == "cuda" else torch.bfloat16,
                 device_map="auto" if self.device == "cuda" else None,
             )
 

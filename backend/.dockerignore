@@ -1,0 +1,7 @@
+.git
+__pycache__/
+venv/
+.venv/
+.env
+models/deepseek-r1-distill-qwen-1.5b/
+

@@ -81,7 +81,7 @@ const Navbar = ({ onOpenPayment, onOpenLogin, activeTab, onTabChange }) => {
                 {dropdownOpen && (
                   <Paper elevation={4} sx={{
                     position: 'absolute', top: '110%', right: 0,
-                    minWidth: 180, borderRadius: 2, overflow: 'hidden', zIndex: 100,
+                    minWidth: 180, borderRadius: 2, overflow: 'hidden', zIndex: 9999,
                     border: '1px solid #e2e8f0',
                   }}>
                     <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid #f1f5f9' }}>
