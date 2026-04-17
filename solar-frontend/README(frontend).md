@@ -46,13 +46,13 @@ solar-frontend/
 │       └── solar-panel-*.jpg         # Hashed static asset
 │
 └── src/
-    ├── index.html                    # HTML entry point (Moved)
-    ├── package.json                  # Dependencies and scripts (Moved)
-    ├── vite.config.js                # Vite build configuration (Moved)
-    ├── users.json                    # Pre-seeded grader account reference (Moved)
-    ├── .env.production               # Production backend URL (Moved)
-    ├── .firebaserc                   # Firebase project binding (Moved)
-    ├── firebase.json                 # Firebase Hosting config (Moved)
+    ├── index.html                    # HTML entry point
+    ├── package.json                  # Dependencies and scripts
+    ├── vite.config.js                # Vite build configuration
+    ├── users.json                    # Pre-seeded grader account reference
+    ├── .env.production               # Production backend URL
+    ├── .firebaserc                   # Firebase project binding
+    ├── firebase.json                 # Firebase Hosting config
     │
     ├── main.jsx                      # React DOM entry — mounts <App />
     ├── App.jsx                       # Root — wraps everything in <UserProvider>
