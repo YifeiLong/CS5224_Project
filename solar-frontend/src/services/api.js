@@ -112,7 +112,7 @@ export const loginUser = async (email, password) => {
     setTimeout(() => {
       if (email === 'cs5224group11@gmail.com' && password === '12345678') {
         resolve({
-          user: { id: 'u_001', name: 'test', email, isPro: false },
+          user: { id: 'u_001', name: 'dear', email, isPro: false },
           token: 'mock_jwt_token_grader',
         });
       } else if (email !== 'cs5224group11@gmail.com') {
