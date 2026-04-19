@@ -2,7 +2,7 @@
 
 A React-based SaaS web application for rooftop solar PV yield forecasting and ROI analysis in Singapore. Users input their property details to receive AI-driven solar generation forecasts, financial projections, and advisory responses from an LLM.
 
-AI knowledgement: We acknowledge the use of Claude AI to guide and generate front-end codes for better visualization and in a structured way based on our ideas.
+
 ---
 
 ## Requirements
@@ -259,3 +259,6 @@ Auth is fully client-side mock — no backend auth endpoints are called.
 | Historical stat cards + charts | ✅ | ✅ | ✅ |
 | Pro stat cards + charts | ❌ blurred | ❌ blurred | ✅ |
 | AI chat advisory | ❌ | ❌ | ✅ |
+
+## AI Acknowledgement
+We acknowledge the use of Claude AI to guide and generate front-end codes for better visualization and in a structured way based on our ideas, and we are responsible for its result and correctness
